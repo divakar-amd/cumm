@@ -23,7 +23,7 @@ from typing import List, Optional, Tuple
 import pccm
 from ccimport import compat
 
-from cumm.constants import CUMM_CPU_ONLY_BUILD, TENSORVIEW_INCLUDE_PATH
+from cumm.constants import CUMM_CPU_ONLY_BUILD, TENSORVIEW_INCLUDE_PATH, CUMM_ROCM_ENABLE
 from cumm.constants import PACKAGE_ROOT
 
 def get_executable_path(executable: str) -> str:
@@ -220,6 +220,12 @@ def _get_cuda_arch_flags(is_gemm: bool = False) -> Tuple[List[str], List[Tuple[i
 
     return sorted(list(set(flags))), nums, have_ptx
 
+def get_hip_version():
+    nvcc_version = subprocess.check_output(["cat", "/opt/rocm/.info/version"]).decode("utf-8").strip()
+    nvcc_version_str = nvcc_version.split('.') # ['5', '6', '0-67']
+    version_str = f'{nvcc_version_str[0]}.{nvcc_version_str[1]}' # 5.6
+    return version_str
+
 def get_cuda_version_by_nvcc():
     nvcc_version = subprocess.check_output(["nvcc", "--version"
                                             ]).decode("utf-8").strip()
@@ -246,9 +252,14 @@ def _get_cuda_include_lib():
             include = windows_cuda_root / f"v{version_str}\\include"
             lib64 = windows_cuda_root / f"v{version_str}\\lib\\x64"
         else:
-            linux_cuda_root = Path("/usr/local/cuda")
-            include = linux_cuda_root / f"include"
-            lib64 = linux_cuda_root / f"lib64"
+            if CUMM_ROCM_ENABLE:
+                linux_cuda_root = Path("/opt/rocm")
+                include = linux_cuda_root / f"include"
+                lib64 = linux_cuda_root / f"lib"
+            else:
+                linux_cuda_root = Path("/usr/local/cuda")
+                include = linux_cuda_root / f"include"
+                lib64 = linux_cuda_root / f"lib64"
         _CACHED_CUDA_INCLUDE_LIB = (include, lib64)
         return _CACHED_CUDA_INCLUDE_LIB
     else:
@@ -260,32 +271,49 @@ class GemmKernelFlags(pccm.Class):
     """
     def __init__(self):
         super().__init__()
-        gpu_arch_flags, self.cuda_archs, self.has_ptx = _get_cuda_arch_flags(True)
         include, lib64 = _get_cuda_include_lib()
         self.build_meta.add_public_includes(include)
-        self.build_meta.add_public_cflags("nvcc", *gpu_arch_flags)
-        self.build_meta.add_public_cflags("nvcc",
-            "-Xcudafe \"--diag_suppress=implicit_return_from_non_void_function\"",
-        )
+        if CUMM_ROCM_ENABLE:
+            self.build_meta.add_public_cflags("hipcc")
+            # self.build_meta.add_public_cflags("hipcc", *gpu_arch_flags)
+            # self.build_meta.add_public_cflags("hipcc",
+            #     "-Xcudafe \"--diag_suppress=implicit_return_from_non_void_function\"",
+            # )
+        else:
+            gpu_arch_flags, self.cuda_archs, self.has_ptx = _get_cuda_arch_flags(True)
+            self.build_meta.add_public_cflags("nvcc", *gpu_arch_flags)
+            self.build_meta.add_public_cflags("nvcc",
+                "-Xcudafe \"--diag_suppress=implicit_return_from_non_void_function\"",
+            )
 
 class GenericKernelFlags(pccm.Class):
     def __init__(self):
         super().__init__()
-        gpu_arch_flags, self.cuda_archs, self.has_ptx = _get_cuda_arch_flags(False)
         include, lib64 = _get_cuda_include_lib()
         self.build_meta.add_public_includes(include)
-        self.build_meta.add_public_cflags("nvcc", *gpu_arch_flags)
-        # http://www.ssl.berkeley.edu/~jimm/grizzly_docs/SSL/opt/intel/cc/9.0/lib/locale/en_US/mcpcom.msg
-        self.build_meta.add_public_cflags("nvcc",
-            "-Xcudafe \"--diag_suppress=implicit_return_from_non_void_function\"",
-        )
+        if CUMM_ROCM_ENABLE:
+            # self.build_meta.add_public_cflags("hipcc", *gpu_arch_flags)
+            self.build_meta.add_public_cflags("hipcc")
+            # self.build_meta.add_public_cflags("hipcc",
+            #     "-Xcudafe \"--diag_suppress=implicit_return_from_non_void_function\"",
+            # )
+        else:
+            gpu_arch_flags, self.cuda_archs, self.has_ptx = _get_cuda_arch_flags(False)
+            self.build_meta.add_public_cflags("nvcc", *gpu_arch_flags)
+            # http://www.ssl.berkeley.edu/~jimm/grizzly_docs/SSL/opt/intel/cc/9.0/lib/locale/en_US/mcpcom.msg
+            self.build_meta.add_public_cflags("nvcc",
+                "-Xcudafe \"--diag_suppress=implicit_return_from_non_void_function\"",
+            )
 
 class CUDALibs(pccm.Class):
     def __init__(self):
         super().__init__()
         self.add_dependency(GenericKernelFlags)
         include, lib64 = _get_cuda_include_lib()
-        self.build_meta.libraries.extend(["cudart"])
+        if CUMM_ROCM_ENABLE:
+            self.build_meta.libraries.extend(["amdhip64"])
+        else:
+            self.build_meta.libraries.extend(["cudart"])
         self.build_meta.libpaths.append(lib64)
 
 class TensorViewHeader(pccm.Class):
@@ -352,14 +380,20 @@ class TensorView(pccm.Class):
     def __init__(self):
         super().__init__()
         # any project depend on TensorView will add global nvcc flags:
-        self.build_meta.add_global_cflags("nvcc", "--expt-relaxed-constexpr")
+        if CUMM_ROCM_ENABLE:
+            self.build_meta.add_global_cflags("hipcc", "--expt-relaxed-constexpr")
+        else:
+            self.build_meta.add_global_cflags("nvcc", "--expt-relaxed-constexpr")
         self.build_meta.add_global_cflags("cl",  "/O2")
         self.build_meta.add_global_cflags("g++,clang++", "-O3")
 
         if not CUMM_CPU_ONLY_BUILD:
             self.add_dependency(CUDALibs, TensorViewCPU)
-            self.build_meta.add_public_cflags("nvcc,clang++,g++", "-DTV_CUDA")
             self.build_meta.add_public_cflags("cl", "/DTV_CUDA")
+            if CUMM_ROCM_ENABLE:
+                self.build_meta.add_public_cflags("hipcc,clang++,g++", "-DTV_CUDA", "-D__HIP_PLATFORM_AMD__") #-D__HIP_PLATFORM_HCC__
+            else:
+                self.build_meta.add_public_cflags("nvcc,clang++,g++", "-DTV_CUDA")
         else:
             self.add_dependency(TensorViewCPU)
 
@@ -608,7 +642,10 @@ class TensorViewNVRTC(pccm.Class):
             include, lib64 = _get_cuda_include_lib()
             self.build_meta.add_public_includes(include, TENSORVIEW_INCLUDE_PATH)
             self.add_include("tensorview/cuda/kernel_utils.h")
-            self.build_meta.add_public_cflags("nvcc", "-DTV_CUDA")
+            if CUMM_ROCM_ENABLE:
+                self.build_meta.add_public_cflags("hipcc", "-DTV_CUDA")
+            else:
+                self.build_meta.add_public_cflags("nvcc", "-DTV_CUDA")
             # if compat.InLinux:
             #     nvrtc_include = PACKAGE_ROOT / "nvrtc_include"
             #     self.build_meta.add_public_includes(nvrtc_include)
@@ -763,7 +800,10 @@ class TensorViewLLVM(pccm.Class):
 
         if not CUMM_CPU_ONLY_BUILD:
             self.add_dependency(CUDALibs, TensorViewCPULLVM)
-            self.build_meta.add_public_cflags("nvcc,clang++,g++", "-DTV_CUDA")
+            if CUMM_ROCM_ENABLE:
+                self.build_meta.add_public_cflags("hipcc,clang++,g++", "-DTV_CUDA")
+            else:
+                self.build_meta.add_public_cflags("nvcc,clang++,g++", "-DTV_CUDA")
             self.build_meta.add_public_cflags("cl", "/DTV_CUDA")
         else:
             self.add_dependency(TensorViewCPULLVM)

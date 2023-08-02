@@ -23,11 +23,16 @@ import numpy as np
 from pccm import Argument
 from pccm.middlewares.pybind import (TemplateTypeStmt,
                                      _simple_template_type_parser)
-
-from cumm.core_cc import tensorview_bind
-from cumm.core_cc.tensorview_bind import CUDAKernelTimer, CUDAEvent, Context
-from cumm.core_cc.tensorview_bind import NVRTCModule as _NVRTCModule
-from cumm.core_cc.tensorview_bind import NVRTCProgram, Tensor, check_cuda_error
+from cumm.constants import CUMM_ROCM_ENABLE
+if CUMM_ROCM_ENABLE:
+    import cumm.core_cc.tensorview_bind_hip as tensorview_bind
+    from cumm.core_cc.tensorview_bind_hip import CUDAKernelTimer, CUDAEvent, Context
+    from cumm.core_cc.tensorview_bind_hip import NVRTCModule as _NVRTCModule
+    from cumm.core_cc.tensorview_bind_hip import NVRTCProgram, Tensor, check_cuda_error
+else:
+    from cumm.core_cc.tensorview_bind import CUDAKernelTimer, CUDAEvent, Context
+    from cumm.core_cc.tensorview_bind import NVRTCModule as _NVRTCModule
+    from cumm.core_cc.tensorview_bind import NVRTCProgram, Tensor, check_cuda_error
 from . import gemm, utils
 
 from cumm.dtypes import get_npdtype_from_tvdtype

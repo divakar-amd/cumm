@@ -24,6 +24,7 @@ from pccm.utils import get_qualname_of_type
 from cumm import dtypes
 from cumm import tensorview as tv
 from cumm.common import TensorView
+from cumm.constants import CUMM_ROCM_ENABLE
 
 _TV_DTYPE_TO_CUMM_DTYPE = {d.tv_dtype: d for d in dtypes.ALL_DTYPES}
 
@@ -74,7 +75,7 @@ class CummTensorKernelPlugin(InlineBuilderPlugin):
 
 _DEFAULT_PLUGINS: Dict[str, InlineBuilderPlugin] = {
     "numpy.ndarray": CummTensorKernelPlugin(),
-    "cumm.core_cc.tensorview_bind.Tensor": CummTensorKernelPlugin(),
+    "cumm.core_cc.tensorview_bind" + ("_hip" if CUMM_ROCM_ENABLE else "") + ".Tensor": CummTensorKernelPlugin(),
 }
 
 _CUMM_KERNEL_1D_NUM_NAME = "_cumm_pccm_inline_num"
@@ -167,7 +168,7 @@ def main():
     b = InlineBuilder(
         [TensorView], {
             "numpy.ndarray": CummTensorPlugin(),
-            "cumm.core_cc.tensorview_bind.Tensor": CummTensorPlugin()
+            "cumm.core_cc.tensorview_bind" + ("_hip" if CUMM_ROCM_ENABLE else "") + ".Tensor": CummTensorPlugin(),
         })
     for i in range(10):
         b.inline(

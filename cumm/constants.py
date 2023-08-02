@@ -15,14 +15,27 @@
 import os
 from pathlib import Path
 from typing import List
-
+import subprocess
 from ccimport import compat
 
 PACKAGE_NAME = "cumm"
 PACKAGE_ROOT = Path(__file__).parent.resolve()
 
+#=== Adding ROCM flag for AMD GPU  ===#
+def check_rocm():
+    proc = subprocess.Popen("rocm-smi", stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, shell=True, universal_newlines=True, bufsize=1)
+    try:
+        outs, errs = proc.communicate(timeout=60)
+    except subprocess.TimeoutExpired as exc:
+        proc.kill()
+        raise RuntimeError('Console script timeout') from exc
+    return proc.returncode == 0
+
+CUMM_ROCM_ENABLE = check_rocm()
+#======================================#
+
 _TENSORVIEW_INCLUDE_PATHS: List[Path] = [
-    PACKAGE_ROOT.parent / "include",  # pip dev install
+    PACKAGE_ROOT.parent / ("include_hip" if CUMM_ROCM_ENABLE else "include"),  # pip dev install
     PACKAGE_ROOT / "include",  # pip package
 ]
 
@@ -47,6 +60,8 @@ CUMM_CUDA_VERSION = os.getenv("CUMM_CUDA_VERSION", None)
 CUMM_CPU_ONLY_BUILD = False
 if CUMM_CUDA_VERSION is not None:
     CUMM_CPU_ONLY_BUILD = CUMM_CUDA_VERSION.strip() == ""
+if CUMM_CPU_ONLY_BUILD:
+    CUMM_ROCM_ENABLE = False
 
 CUMM_DISABLE_JIT = os.getenv("CUMM_DISABLE_JIT", "0") == "1"
 

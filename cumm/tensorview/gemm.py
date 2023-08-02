@@ -12,9 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from cumm.core_cc.tensorview_bind import (NVRTCParams, GemmAlgoDesp,
-                                          ConvAlgoDesp, ConvParams, ConvOpType,
-                                          ConvLayoutType, ShuffleStrideType,
-                                          ConvIterAlgo, Activation,
-                                          ConvMode, run_nvrtc_conv_kernel,
-                                          GemmParams, run_nvrtc_gemm_kernel)
+from cumm.constants import CUMM_ROCM_ENABLE
+if CUMM_ROCM_ENABLE:
+    from cumm.core_cc.tensorview_bind_hip import (NVRTCParams, GemmAlgoDesp,
+                                            ConvAlgoDesp, ConvParams, ConvOpType,
+                                            ConvLayoutType, ShuffleStrideType,
+                                            ConvIterAlgo, Activation,
+                                            ConvMode, run_nvrtc_conv_kernel,
+                                            GemmParams, run_nvrtc_gemm_kernel)
+else:
+    from cumm.core_cc.tensorview_bind import (NVRTCParams, GemmAlgoDesp,
+                                            ConvAlgoDesp, ConvParams, ConvOpType,
+                                            ConvLayoutType, ShuffleStrideType,
+                                            ConvIterAlgo, Activation,
+                                            ConvMode, run_nvrtc_conv_kernel,
+                                            GemmParams, run_nvrtc_gemm_kernel)

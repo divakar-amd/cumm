@@ -15,7 +15,11 @@ import ctypes
 from cumm import PACKAGE_ROOT
 from cumm import tensorview as tv
 from cumm.common import TensorViewKernel, _get_cuda_include_lib
-from cumm.core_cc.tensorview_bind import Tensor
+from cumm.constants import CUMM_ROCM_ENABLE
+if CUMM_ROCM_ENABLE:
+    from cumm.core_cc.tensorview_bind_hip import Tensor
+else:
+    from cumm.core_cc.tensorview_bind import Tensor
 import numpy as np
 
 LLVM_IS_INITED = False
@@ -29,6 +33,7 @@ if compat.InWindows:
 
 
 def get_cudadevrt_path():
+    print("[__init__.py] Calling get_cudadevrt_path(). CAUTION!!")
     _, lib64 = _get_cuda_include_lib()
     _cudadevrt_path_candidates = [
         PACKAGE_ROOT / "lib" / _cudadevrt_libname,  # pip package
@@ -223,13 +228,20 @@ def create_nvrtc_code(cus: List[pccm.Class],
             # if we use CummNVRTCModule to compile ptx for optix, 
             # we can't add arch flag
             arch = tv.get_compute_capability()
-            opts.append(f"--gpu-architecture=sm_{arch[0]}{arch[1]}")
+            # opts.append(f"--gpu-architecture=sm_{arch[0]}{arch[1]}")
         if cudadevrt_path and Path(cudadevrt_path).exists():
             opts.append("--relocatable-device-code=true")
         if "nvcc" in global_cflags:
             opts.extend(global_cflags["nvcc"])
         if "nvcc" in local_cflags:
             opts.extend(local_cflags["nvcc"])
+        if "hipcc" in global_cflags:
+            print("adding hipcc to global_cflags. No architecture added.")
+            opts.extend(global_cflags["hipcc"])
+        if "hipcc" in local_cflags:
+            opts.extend(local_cflags["hipcc"])
+            print("adding hipcc to local_cflags. No architecture added.")
+
     else:
         if "g++" in global_cflags:
             opts.extend(global_cflags["g++"])
@@ -254,6 +266,8 @@ def create_nvrtc_code(cus: List[pccm.Class],
     name_exprs = list(name_to_meta.keys())
     if custom_names is not None:
         name_exprs.extend(custom_names)
+    print(opts)
+    print(includes)
     return NVRTCModuleParams(final_code,
                              header_code_dict,
                              opts,

@@ -18,13 +18,17 @@ import pccm
 from pccm.utils import project_is_editable, project_is_installed
 
 from .__version__ import __version__
-from .constants import CUMM_CPU_ONLY_BUILD, CUMM_DISABLE_JIT, PACKAGE_NAME
+from .constants import CUMM_CPU_ONLY_BUILD, CUMM_DISABLE_JIT, PACKAGE_NAME, CUMM_ROCM_ENABLE
 from cumm.constants import PACKAGE_ROOT
 
 if project_is_installed(PACKAGE_NAME) and project_is_editable(
         PACKAGE_NAME) and not CUMM_DISABLE_JIT:
     from cumm.csrc.arrayref import ArrayPtr
-    from cumm.tensorview_bind import TensorViewBind
+    if CUMM_ROCM_ENABLE:
+        from cumm.tensorview_bind_hip import TensorViewBind
+    else:
+        from cumm.tensorview_bind import TensorViewBind
+    
     pccm.builder.build_pybind([ArrayPtr(), TensorViewBind()],
                               PACKAGE_ROOT / "core_cc",
                               namespace_root=PACKAGE_ROOT,

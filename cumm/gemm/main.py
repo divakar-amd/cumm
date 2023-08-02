@@ -30,7 +30,7 @@ from cumm import cudasim, dtypes
 from cumm import tensorview as tv
 from cumm.common import (CummNVRTCLib, GemmBasic, GemmBasicHost, PyBind11, TensorView,
                          TensorViewKernel)
-from cumm.constants import CUTLASS_MODE
+from cumm.constants import CUTLASS_MODE, CUMM_ROCM_ENABLE
 from cumm.core_cc.csrc.arrayref import ArrayPtr
 from cumm.gemm import codeops, kernel
 from cumm.gemm.algospec.core import GemmAlgo, ShuffleStrideType, TensorOp
@@ -38,7 +38,10 @@ from cumm.gemm.core import MetaArray, array_type, metaseq, seq
 from cumm.gemm.core.metaarray import MetaArray
 from cumm.gemm.utils import GemmUtilsCPU
 from cumm.gemm.constants import NVRTCMode
-from cumm.gemm.nvrtc_code import nvrtc_gemm_template
+if CUMM_ROCM_ENABLE:
+    from cumm.gemm.nvrtc_code_hip import nvrtc_gemm_template
+else:
+    from cumm.gemm.nvrtc_code import nvrtc_gemm_template
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from cumm.conv.main import GemmKernel as ConvKernel

@@ -18,7 +18,11 @@ from typing import List, Optional
 import pccm
 
 from cumm.common import TensorView, TensorViewCPU
-from cumm.tensorview_bind import TensorViewBind
+from cumm.constants import CUMM_ROCM_ENABLE
+if CUMM_ROCM_ENABLE:
+    from cumm.tensorview_bind_hip import TensorViewBind
+else:
+    from cumm.tensorview_bind import TensorViewBind
 
 
 class ArrayPtr(pccm.Class, pccm.pybind.PybindClassMixin):

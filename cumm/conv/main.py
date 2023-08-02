@@ -27,7 +27,7 @@ from pccm.core import CodeFormatter
 # from myclang import clangformat
 from cumm import cudasim, dtypes
 from cumm import tensorview as tv
-from cumm.common import CummNVRTCLib, GemmBasic, GemmBasicHost, TensorView, TensorViewKernel
+from cumm.common import CummNVRTCLib, GemmBasic, GemmBasicHost, TensorView, TensorViewKernel, CUMM_ROCM_ENABLE
 from cumm.constants import CUMM_MAXIMUM_NVRTC_CONV_NDIM, CUTLASS_MODE
 from cumm.conv import kernel
 from cumm.conv.bases import (NCHW, NHWC, ConvIterAlgo, ConvLayout,
@@ -43,7 +43,10 @@ from cumm.gemm.core.metaarray import MetaArray
 from cumm.gemm.kernel import GemmKernel
 from cumm.gemm.main import (GemmAlgoParams, GemmMainUnitTest,
                             NVRTCMode)
-from cumm.conv.nvrtc_code import nvrtc_conv_template
+if CUMM_ROCM_ENABLE:
+    from cumm.conv.nvrtc_code_hip import nvrtc_conv_template
+else:
+    from cumm.conv.nvrtc_code import nvrtc_conv_template
 def seq(*vals):
     return np.array([*vals], dtype=np.int64)
 
