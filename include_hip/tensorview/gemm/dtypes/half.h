@@ -38,7 +38,7 @@
 #endif
 
 
-#if defined(__CUDACC_RTC__)
+#if defined(__HIPCC_RTC__)
 #include "fp_nvrtc.h"
 #include <tensorview/core/nvrtc_std.h>
 #undef CUTLASS_ENABLE_F16C
@@ -467,7 +467,7 @@ int fpclassify(tv::half_t const &h) {
 
 TV_HOST_DEVICE_INLINE
 tv::half_t sqrt(tv::half_t const &h) {
-#if defined(__CUDACC_RTC__)
+#if defined(__HIPCC_RTC__)
   return tv::half_t(sqrtf(float(h)));
 #else
   return tv::half_t(std::sqrt(float(h)));
@@ -496,7 +496,7 @@ half_t copysign(half_t const &a, half_t const &b) {
 
 namespace std {
 
-#if !defined(__CUDACC_RTC__)
+#if !defined(__HIPCC_RTC__)
 /// Numeric limits
 template <> struct numeric_limits<tv::half_t> {
   static bool const is_specialized = true;

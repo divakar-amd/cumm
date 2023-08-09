@@ -19,7 +19,7 @@
 // https://github.com/NVIDIA/TensorRT/blob/96e23978cd6e4a8fe869696d3d8ec2b47120629b/plugin/common/cudaDriverWrapper.h
 #pragma once
 
-#define CUDA_LIB_NAME "cuda"
+#define CUDA_LIB_NAME "amdhip64"
 
 #if defined(_WIN32)
 #if !defined(WIN32_LEAN_AND_MEAN)
@@ -32,13 +32,12 @@
   GetProcAddress(static_cast<HMODULE>(handle), name)
 #else
 #include <dlfcn.h>
-#define dllOpen(name) dlopen("lib" name ".so.1", RTLD_LAZY)
+#define dllOpen(name) dlopen("lib" name ".so", RTLD_LAZY)
 #define dllClose(handle) dlclose(handle)
 #define dllGetSym(handle, name) dlsym(handle, name)
 #endif
 
 #include <hip/hip_runtime.h>
-#include <hip/hip_runtime_api.h>
 #include <tensorview/core/common.h>
 
 namespace tv {
@@ -64,11 +63,11 @@ public:
     *(void **)(&_cuLinkCreate) = load_sym(handle, "hiprtcLinkCreate");
     *(void **)(&_cuLinkAddFile) = load_sym(handle, "hiprtcLinkAddFile");
     *(void **)(&_cuLinkAddData) = load_sym(handle, "hiprtcLinkAddData");
-    *(void **)(&_cuLinkComplete) = load_sym(handle, "hipLinkComplete");
-    *(void **)(&_cuLinkDestroy) = load_sym(handle, "hipLinkDestroy");
+    *(void **)(&_cuLinkComplete) = load_sym(handle, "hiprtcLinkComplete");
+    *(void **)(&_cuLinkDestroy) = load_sym(handle, "hiprtcLinkDestroy");
     *(void **)(&_cuLaunchCooperativeKernel) =
-        load_sym(handle, "cuLaunchCooperativeKernel");
-    *(void **)(&_cuFuncSetAttribute) = load_sym(handle, "cuFuncSetAttribute");
+        load_sym(handle, "hipModuleLaunchCooperativeKernel");
+    *(void **)(&_cuFuncSetAttribute) = load_sym(handle, "hipFuncSetAttribute");
     *(void **)(&_cuGetErrorName) = load_sym(handle, "hipGetErrorName");
     *(void **)(&_cuFuncGetAttribute) = load_sym(handle, "hipFuncGetAttribute");
     *(void **)(&_cuModuleGetGlobal) = load_sym(handle, "hipModuleGetGlobal");

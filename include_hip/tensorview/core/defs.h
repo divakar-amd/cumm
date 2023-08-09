@@ -30,7 +30,7 @@
 #define TV_IS_EXTEND_DEVICE_LAMBDA(x)                                          \
   __nv_is_extended_device_lambda_closure_type(x)
 
-#elif defined(__CUDACC_RTC__)
+#elif defined(__HIPCC_RTC__)
 #define TV_CUDA_CC
 #define TV_ASSERT(expr) assert(expr)
 #define TV_HOST_DEVICE_INLINE __forceinline__ __device__
@@ -63,17 +63,17 @@
 #define TV_GLOBAL_INDEX int64_t
 #endif
 
-#if defined(__CUDA_ARCH__)
-#if defined(__CUDACC_RTC__) || (defined(__clang__) && defined(__CUDA__))
-#define TV_PRAGMA_UNROLL _Pragma("unroll")
-#define TV_PRAGMA_NO_UNROLL _Pragma("unroll 1")
+#if defined(__HIP_DEVICE_COMPILE__)
+  #if defined(__HIPCC_RTC__) || (defined(__clang__) && defined(__HIP__))
+    #define TV_PRAGMA_UNROLL _Pragma("unroll")
+    #define TV_PRAGMA_NO_UNROLL _Pragma("unroll 1")
+  #else
+    #define TV_PRAGMA_UNROLL #pragma unroll
+    #define TV_PRAGMA_NO_UNROLL #pragma unroll 1
+  #endif
 #else
-#define TV_PRAGMA_UNROLL #pragma unroll
-#define TV_PRAGMA_NO_UNROLL #pragma unroll 1
-#endif
-#else
-#define TV_PRAGMA_UNROLL
-#define TV_PRAGMA_NO_UNROLL
+  #define TV_PRAGMA_UNROLL
+  #define TV_PRAGMA_NO_UNROLL
 #endif
 
 #if __cplusplus >= 201703L

@@ -18,7 +18,6 @@
 #include <tensorview/core/common.h>
 #include <type_traits>
 #include <hip/hip_runtime.h>
-#include <hip/hip_runtime_api.h>
 namespace tv {
 namespace cuda {
 

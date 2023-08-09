@@ -14,13 +14,15 @@
 // limitations under the License.
 #pragma once
 #include <tensorview/core/defs.h>
-#ifndef __CUDACC_RTC__
+#ifndef __HIPCC_RTC__
 #include <cmath>
 #endif
 #ifdef __HIPCC__
 #include <hip/hip_fp16.h>
 #if (__CUDACC_VER_MAJOR__ >= 11)
 #include <hip/hip_bf16.h>
+#else
+#warning "hip/hip_bf16.h not included in mathbase.h"
 #endif
 #endif
 

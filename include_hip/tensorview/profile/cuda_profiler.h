@@ -15,7 +15,6 @@
 
 #pragma once
 #ifdef TV_CUDA
-#include <hip/hip_runtime.h>
 #include <hip/hip_runtime_api.h>
 #endif
 #include <chrono>

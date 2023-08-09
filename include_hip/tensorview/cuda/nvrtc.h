@@ -23,7 +23,6 @@
 #include <vector>
 #ifdef TV_CUDA
 #include <hip/hip_runtime.h>
-#include <hip/hip_runtime_api.h>
 #include <hip/hiprtc.h>
 #include <tensorview/cuda/driver.h>
 #endif

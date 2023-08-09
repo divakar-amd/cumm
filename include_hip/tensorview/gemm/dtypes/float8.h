@@ -36,7 +36,7 @@
 */
 #pragma once
 
-#if !defined(__CUDACC_RTC__)
+#if !defined(__HIPCC_RTC__)
 #include <cmath>
 #include <cstdint>
 #include <limits>
@@ -52,6 +52,8 @@
 #include <hip/hip_fp16.h>
 #if ((__CUDACC_VER_MAJOR__ == 11 && __CUDACC_VER_MINOR__ >= 8) || __CUDACC_VER_MAJOR__ >= 12)
 #include <cuda_fp8.h>
+#else
+#warning "hip fp8 will not be included"
 #endif
 #endif
 
@@ -66,6 +68,7 @@
 #endif
 
 #endif
+#warning "Fix the __CUDA_ARCH__ here!"
 #endif
 
 
@@ -143,7 +146,7 @@ struct alignas(1) float8_base {
     static bool isfinite(float flt) {
         uint32_t s;
 
-        #if defined(__CUDA_ARCH__)
+        #if defined(__HIP_DEVICE_COMPILE__)
         s = reinterpret_cast<uint32_t const &>(flt);
         #else
         std::memcpy(&s, &flt, sizeof(s));
@@ -157,7 +160,7 @@ struct alignas(1) float8_base {
     static bool isnan(float flt) {
         uint32_t s;
 
-        #if defined(__CUDA_ARCH__)
+        #if defined(__HIP_DEVICE_COMPILE__)
         s = reinterpret_cast<uint32_t const &>(flt);
         #else
         std::memcpy(&s, &flt, sizeof(s));
@@ -171,7 +174,7 @@ struct alignas(1) float8_base {
     static bool isinf(float flt) {
         uint32_t s;
 
-        #if defined(__CUDA_ARCH__)
+        #if defined(__HIP_DEVICE_COMPILE__)
         s = reinterpret_cast<uint32_t const &>(flt);
         #else
         std::memcpy(&s, &flt, sizeof(s));
@@ -190,7 +193,7 @@ struct alignas(1) float8_base {
         // software implementation rounds toward nearest even
         uint32_t s;
 
-        #if defined(__CUDA_ARCH__)
+        #if defined(__HIP_DEVICE_COMPILE__)
         s = reinterpret_cast<uint32_t const &>(flt);
         #else
         std::memcpy(&s, &flt, sizeof(s));
@@ -337,7 +340,7 @@ struct alignas(1) float8_base {
             }
         }
 
-        #if defined(__CUDA_ARCH__)
+        #if defined(__HIP_DEVICE_COMPILE__)
         return reinterpret_cast<float const&>(f);
         #else
         float flt;
@@ -443,7 +446,7 @@ struct alignas(1) float_e4m3_t : float8_base<FloatEncoding::E4M3> {
     /// Reinterpret cast from CUDA's FP8 type
     TV_HOST_DEVICE_INLINE
     float_e4m3_t(float_e4m3_t const& x) {
-    #if defined(__CUDA_ARCH__)
+    #if defined(__HIP_DEVICE_COMPILE__)
         storage = reinterpret_cast<uint8_t const &>(x);
     #else
         uint8_t raw = x.storage;
@@ -479,7 +482,7 @@ struct alignas(1) float_e4m3_t : float8_base<FloatEncoding::E4M3> {
     /// Assignment
     TV_HOST_DEVICE_INLINE
     float_e4m3_t & operator=(float_e4m3_t const &x) {
-    #if defined(__CUDA_ARCH__)
+    #if defined(__HIP_DEVICE_COMPILE__)
         storage = reinterpret_cast<uint8_t const &>(x);
     #else
         uint8_t raw = x.storage;
@@ -509,7 +512,7 @@ struct alignas(1) float_e4m3_t : float8_base<FloatEncoding::E4M3> {
     /// Converts to int
     TV_HOST_DEVICE_INLINE
     explicit operator int() const {
-    #if defined(__CUDA_ARCH__)
+    #if defined(__HIP_DEVICE_COMPILE__)
         return __half2int_rn(to_half(*this));
     #else
         return int(to_float(*this));
@@ -519,7 +522,7 @@ struct alignas(1) float_e4m3_t : float8_base<FloatEncoding::E4M3> {
     /// Casts to bool
     TV_HOST_DEVICE_INLINE
     explicit operator bool() const {
-    #if defined(__CUDA_ARCH__)
+    #if defined(__HIP_DEVICE_COMPILE__)
         return bool(__half2int_rn(to_half(*this)));
     #else
         return bool(int(to_float(*this)));
@@ -653,7 +656,7 @@ struct alignas(1) float_e5m2_t : float8_base<FloatEncoding::E5M2> {
     /// Reinterpret cast from CUDA's FP8 type
     TV_HOST_DEVICE_INLINE
     float_e5m2_t(float_e5m2_t const& x) {
-    #if defined(__CUDA_ARCH__)
+    #if defined(__HIP_DEVICE_COMPILE__)
         storage = reinterpret_cast<uint8_t const &>(x);
     #else
         uint8_t raw = x.storage;
@@ -689,7 +692,7 @@ struct alignas(1) float_e5m2_t : float8_base<FloatEncoding::E5M2> {
     /// Assignment
     TV_HOST_DEVICE_INLINE
     float_e5m2_t & operator=(float_e5m2_t const &x) {
-    #if defined(__CUDA_ARCH__)
+    #if defined(__HIP_DEVICE_COMPILE__)
         storage = reinterpret_cast<uint8_t const &>(x);
     #else
         uint8_t raw = x.storage;
@@ -719,7 +722,7 @@ struct alignas(1) float_e5m2_t : float8_base<FloatEncoding::E5M2> {
     /// Converts to int
     TV_HOST_DEVICE_INLINE
     explicit operator int() const {
-    #if defined(__CUDA_ARCH__)
+    #if defined(__HIP_DEVICE_COMPILE__)
         return __half2int_rn(to_half(*this));
     #else
         return int(to_float(*this));
@@ -729,7 +732,7 @@ struct alignas(1) float_e5m2_t : float8_base<FloatEncoding::E5M2> {
     /// Casts to bool
     TV_HOST_DEVICE_INLINE
     explicit operator bool() const {
-    #if defined(__CUDA_ARCH__)
+    #if defined(__HIP_DEVICE_COMPILE__)
         return bool(__half2int_rn(to_half(*this)));
     #else
         return bool(int(to_float(*this)));

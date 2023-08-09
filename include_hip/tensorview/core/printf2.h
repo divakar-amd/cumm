@@ -16,7 +16,7 @@
 #pragma once
 #include "array.h"
 #include "defs.h"
-#ifndef __CUDACC_RTC__
+#ifndef __HIPCC_RTC__
 #include <cstdio>
 #endif
 #include "const_string.h"

@@ -31,8 +31,9 @@
 */
 #pragma once
 
-#if defined(__CUDACC_RTC__)
-#include <cuda/std/cstdint>
+#if defined(__HIPCC_RTC__)
+// #include <cuda/std/cstdint>
+#include "hipify/stdint.h"
 #else
 #include <cstdint>
 #endif

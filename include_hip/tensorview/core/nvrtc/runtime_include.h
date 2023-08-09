@@ -2,8 +2,7 @@
 #pragma once
 
 #ifdef TV_CUDA
-#ifndef __CUDACC_RTC__
+#ifndef __HIPCC_RTC__
 #include <hip/hip_runtime_api.h>
-#include <hip/hip_runtime.h>
 #endif
 #endif

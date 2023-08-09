@@ -32,7 +32,7 @@
 */
 #pragma once
 
-#if !defined(__CUDACC_RTC__)
+#if !defined(__HIPCC_RTC__)
 #include <cmath>
 #include <cstdint>
 #include <limits>
@@ -44,9 +44,9 @@
 #include <tensorview/core/all.h>
 
 #ifdef __HIPCC__
-#if (__CUDACC_VER_MAJOR__ >= 11)
-#include <hip/hip_bf16.h>
-#endif
+// #if (__CUDACC_VER_MAJOR__ >= 11)
+#include <hip/hip_bfloat16.h>
+// #endif
 #endif
 
 namespace tv {
@@ -216,7 +216,7 @@ int fpclassify(tv::bfloat16_t const &h) {
 
 TV_HOST_DEVICE_INLINE
 tv::bfloat16_t sqrt(tv::bfloat16_t const &h) {
-#if defined(__CUDACC_RTC__)
+#if defined(__HIPCC_RTC__)
   return tv::bfloat16_t(sqrtf(float(h)));
 #else
   return tv::bfloat16_t(std::sqrt(float(h)));
@@ -245,7 +245,7 @@ bfloat16_t copysign(bfloat16_t const &a, bfloat16_t const &b) {
 
 namespace std {
 
-#if !defined(__CUDACC_RTC__)
+#if !defined(__HIPCC_RTC__)
 /// Numeric limits
 template <> struct numeric_limits<tv::bfloat16_t> {
   static bool const is_specialized = true;

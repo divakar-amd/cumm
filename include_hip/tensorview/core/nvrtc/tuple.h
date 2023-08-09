@@ -1,5 +1,5 @@
 #pragma once
-#ifdef __CUDACC_RTC__
+#ifdef __HIPCC_RTC__
 #include "type_traits.h"
 #include <tensorview/core/defs.h>
 #include <tensorview/core/mp_helper.h>

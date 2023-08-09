@@ -22,7 +22,6 @@
 #include <unordered_map>
 #ifdef TV_CUDA
 #include <hip/hip_runtime.h>
-#include <hip/hip_runtime_api.h>
 #endif
 
 namespace tv {

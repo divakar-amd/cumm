@@ -17,7 +17,6 @@
 #include <chrono>
 #ifdef TV_CUDA
 #include <hip/hip_runtime_api.h>
-#include <hip/hip_runtime.h>
 #endif
 #include <iostream>
 #include <tensorview/tensorview.h>

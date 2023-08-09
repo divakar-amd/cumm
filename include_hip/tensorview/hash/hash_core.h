@@ -15,7 +15,7 @@
 #pragma once
 
 #include <tensorview/core/all.h>
-#ifdef __CUDACC_RTC__
+#ifdef __HIPCC_RTC__
 #include <tensorview/core/nvrtc_std.h>
 #else
 #include <type_traits>

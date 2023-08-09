@@ -26,7 +26,7 @@
 #define MP_HELPER_H_
 #include "defs.h"
 
-#ifdef __CUDACC_RTC__
+#ifdef __HIPCC_RTC__
 #include "nvrtc/type_traits.h"
 #else
 #include "cc17.h"
@@ -100,7 +100,7 @@ template <int... I>
 using mp_list_int = mp_list<std::integral_constant<int, I>...>;
 
 namespace detail {
-#ifndef __CUDACC_RTC__
+#ifndef __HIPCC_RTC__
 template <class... Ts, class F>
 constexpr F mp_for_each_impl(mp_list<Ts...>, F &&f) {
   using A = int[sizeof...(Ts)];
@@ -493,7 +493,7 @@ constexpr auto mp_rename_v = detail::mp_rename_v_impl<A, B>::value;
 
 template <class L> using mp_size = mp_rename<L, mp_length>;
 
-#ifndef __CUDACC_RTC__
+#ifndef __HIPCC_RTC__
 template <class L, class F> constexpr F mp_for_each(F &&f) {
   return detail::mp_for_each_impl(mp_rename<L, mp_list>(), std::forward<F>(f));
 }

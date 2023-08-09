@@ -29,7 +29,7 @@
 
 #include <tensorview/core/all.h>
 #include <tensorview/gemm/dtypes/all.h>
-#if !defined(__CUDACC_RTC__)
+#if !defined(__HIPCC_RTC__)
 #include <fenv.h>
 #include <cfenv>
 #else 
@@ -125,7 +125,7 @@ struct NumericConverter<int32_t, float, FloatRoundStyle::round_toward_zero> {
   }
 };
 
-#elif !defined(__CUDACC_RTC__)
+#elif !defined(__HIPCC_RTC__)
 
 template <>
 struct NumericConverter<int32_t, float, FloatRoundStyle::round_to_nearest> {
@@ -257,7 +257,7 @@ struct NumericConverter<int8_t, half_t, FloatRoundStyle::round_toward_zero> {
   }
 };
 
-#elif !defined(__CUDACC_RTC__)
+#elif !defined(__HIPCC_RTC__)
 
 template <>
 struct NumericConverter<int8_t, float, FloatRoundStyle::round_to_nearest> {

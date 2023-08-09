@@ -19,7 +19,7 @@
 
 namespace tv {
 namespace detail {
-#ifndef __CUDACC_RTC__
+#ifndef __HIPCC_RTC__
 template <typename _InIter>
 using _RequireInputIter = typename std::enable_if<std::is_convertible<
     typename std::iterator_traits<_InIter>::iterator_category,
@@ -36,7 +36,7 @@ template <typename T, size_t N> struct vecarray : public array<T, N> {
   typedef const value_type *const_iterator;
   typedef std::size_t size_type;
   typedef std::ptrdiff_t difference_type;
-#ifndef __CUDACC_RTC__
+#ifndef __HIPCC_RTC__
   typedef std::reverse_iterator<iterator> reverse_iterator;
   typedef std::reverse_iterator<const_iterator> const_reverse_iterator;
 #endif
@@ -55,7 +55,7 @@ public:
       this->array_[p.first] = *(p.second);
     }
   }
-#ifndef __CUDACC_RTC__
+#ifndef __HIPCC_RTC__
   template <typename Iterator, typename = detail::_RequireInputIter<Iterator>>
   vecarray(Iterator first, Iterator last) {
     size_ = 0;
@@ -131,7 +131,7 @@ public:
   TV_HOST_DEVICE_INLINE constexpr const_iterator cend() const {
     return const_iterator(this->array_ + size_);
   }
-#ifndef __CUDACC_RTC__
+#ifndef __HIPCC_RTC__
   constexpr const_reverse_iterator crbegin() const noexcept {
     return const_reverse_iterator(end());
   }

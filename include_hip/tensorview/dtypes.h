@@ -15,8 +15,6 @@
 
 #pragma once
 #ifdef TV_CUDA
-#include <hip/hip_runtime.h>
-#include <hip/hip_runtime_api.h>
 #include <hip/hip_fp16.h>
 #endif
 #if (TORCH_HIP_VERSION >= 11000 && defined(TV_CUDA))
@@ -27,12 +25,12 @@
 #endif
 
 #include <tensorview/core/defs.h>
-#ifdef __CUDACC_RTC__
-#include <tensorview/core/nvrtc_std.h>
+#ifdef __HIPCC_RTC__
+  #include <tensorview/core/nvrtc_std.h>
 #else
-#include <algorithm>
-#include <type_traits>
-#include <cstdint>
+  #include <algorithm>
+  #include <type_traits>
+  #include <cstdint>
 #endif
 #define TV_UNKNOWN_DTYPE_STRING "unknown"
 

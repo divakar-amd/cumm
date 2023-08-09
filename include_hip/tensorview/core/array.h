@@ -21,7 +21,7 @@
 #include <tensorview/core/mp_helper.h>
 #include "const_ops.h"
 
-#ifdef __CUDACC_RTC__
+#ifdef __HIPCC_RTC__
 #include "nvrtc_std.h"
 #else
 #include <array>
@@ -131,7 +131,7 @@ template <typename T, size_t N, size_t Align = 0> struct array {
   typedef const value_type *const_iterator;
   typedef std::size_t size_type;
   typedef std::ptrdiff_t difference_type;
-#ifndef __CUDACC_RTC__
+#ifndef __HIPCC_RTC__
   typedef std::reverse_iterator<iterator> reverse_iterator;
   typedef std::reverse_iterator<const_iterator> const_reverse_iterator;
 #endif
@@ -183,7 +183,7 @@ public:
   TV_HOST_DEVICE_INLINE constexpr const_iterator cend() const {
     return const_iterator(array_ + N);
   }
-#ifndef __CUDACC_RTC__
+#ifndef __HIPCC_RTC__
   constexpr const_reverse_iterator crbegin() const noexcept {
     return const_reverse_iterator(end());
   }
@@ -323,7 +323,7 @@ TV_HOST_DEVICE_INLINE constexpr const T &
 array_or_scalar(const array<T, N, Align> &arr, int i) {
   return arr[i];
 }
-#ifndef __CUDACC_RTC__
+#ifndef __HIPCC_RTC__
 template <typename T, size_t N>
 TV_HOST_DEVICE_INLINE constexpr const T &
 array_or_scalar(const std::array<T, N> &arr, int i) {
@@ -455,7 +455,7 @@ template <typename T> struct get_array_extent {
   static constexpr int value = -1;
 };
 
-#ifndef __CUDACC_RTC__
+#ifndef __HIPCC_RTC__
 // std::array don't support nvrtc.
 template <typename T, size_t N> struct get_array_extent<std::array<T, N>> {
   static constexpr int value = N;
@@ -527,7 +527,7 @@ template <typename T, size_t N> struct nested_array_type<T, N> {
 template <typename T, size_t... Ns>
 using array_nd = typename detail::nested_array_type<T, Ns...>::type;
 
-#ifndef __CUDACC_RTC__
+#ifndef __HIPCC_RTC__
 // std::array don't support nvrtc.
 namespace detail {
 

@@ -22,9 +22,9 @@
 
 #pragma once
 
-#ifdef __CUDACC_RTC__
+#ifdef __HIPCC_RTC__
 
-#include <cuda/std/cassert>
+// #include <cuda/std/cassert>
 
 typedef signed char int8_t;
 typedef signed short int16_t;

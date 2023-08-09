@@ -21,7 +21,7 @@
 
 #include "core/defs.h"
 
-#ifdef __CUDACC_RTC__
+#ifdef __HIPCC_RTC__
 #include <tensorview/core/nvrtc_std.h>
 #else
 
@@ -41,20 +41,22 @@
 #ifdef TV_CUDA
 
 #include <hip/hip_fp16.h>
-#ifndef __CUDACC_RTC__
+#ifndef __HIPCC_RTC__
 
 #include <hip/hip_runtime.h>
 #include <hip/hip_runtime_api.h>
 #endif
 #endif
 #if (TORCH_HIP_VERSION >= 11000 && defined(TV_CUDA))
-#include <cuda_bf16.h>
+#include <hip/hip_bf16.h>
+#else
+#warning "(not important) TORCH_HIP_VERSION < 11000", TORCH_HIP_VERSION
 #endif
 
 namespace tv {
 
 #ifdef TV_CUDA
-#ifndef __CUDACC_RTC__
+#ifndef __HIPCC_RTC__
 
 struct GPU {
   GPU(hipStream_t s = 0) : mStream(s) {}
@@ -158,7 +160,7 @@ struct ShapeBase : public vecarray<Tindex, MaxDim> {
     }
     this->size_ = shape.ndim();
   }
-#ifndef __CUDACC_RTC__
+#ifndef __HIPCC_RTC__
   template <typename Iterator, typename = detail::_RequireInputIter<Iterator>>
   ShapeBase(Iterator first, Iterator last)
       : vecarray<Tindex, MaxDim>(first, last) {}
@@ -276,7 +278,7 @@ struct ShapeBase : public vecarray<Tindex, MaxDim> {
 };
 
 using Shape = ShapeBase<TV_MAX_DIM, TV_GLOBAL_INDEX>;
-#ifndef __CUDACC_RTC__
+#ifndef __HIPCC_RTC__
 
 template <class... Inds>
 TV_HOST_DEVICE_INLINE unsigned rowArrayIdx(std::vector<TV_GLOBAL_INDEX> &shape,
@@ -887,7 +889,7 @@ struct TensorView {
   }
   TV_HOST_DEVICE_INLINE size_t size() const { return shape_.size(); }
 
-#ifndef __CUDACC_RTC__
+#ifndef __HIPCC_RTC__
   template <typename Os>
   std::string repr(Os &ss, int limit = 1000, int limit_axis = 6) const {
     if (empty())
@@ -973,7 +975,7 @@ protected:
   tv_shape_t shape_;
   tv_shape_t stride_;
 };
-#ifndef __CUDACC_RTC__
+#ifndef __HIPCC_RTC__
 
 template <typename T> TensorView<T> vector2tv(std::vector<T> &arr) {
   return TensorView<T>(arr.data(), {arr.size()});

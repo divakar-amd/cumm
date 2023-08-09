@@ -27,7 +27,6 @@
 #endif
 #ifdef TV_CUDA
 #include <hip/hip_runtime.h>
-#include <hip/hip_runtime_api.h>
 #endif
 // llvmlite currently don't support iostream
 #ifndef TV_LLVM_JIT

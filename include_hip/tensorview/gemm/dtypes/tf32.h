@@ -31,7 +31,7 @@
 */
 #pragma once
 
-#if !defined(__CUDACC_RTC__)
+#if !defined(__HIPCC_RTC__)
 #include <cmath>
 #include <cstdint>
 #include <limits>
@@ -75,7 +75,7 @@ struct alignas(4) tfloat32_t {
   static tfloat32_t round_half_ulp_truncate(float const &s) {
     uint32_t x = reinterpret_cast<uint32_t const &>(s);
 
-#if defined(__CUDA_ARCH__)
+#if defined(__HIP_DEVICE_COMPILE__)
     if (::isfinite(s)) {
       x += 0x1000u;
     }
@@ -209,7 +209,7 @@ int fpclassify(tv::tfloat32_t const &h) {
 
 TV_HOST_DEVICE_INLINE
 tv::tfloat32_t sqrt(tv::tfloat32_t const &h) {
-#if defined(__CUDACC_RTC__)
+#if defined(__HIPCC_RTC__)
   return tv::tfloat32_t(sqrtf(float(h)));
 #else
   return tv::tfloat32_t(std::sqrt(float(h)));
@@ -238,7 +238,7 @@ tfloat32_t copysign(tfloat32_t const &a, tfloat32_t const &b) {
 
 namespace std {
 
-#if !defined(__CUDACC_RTC__)
+#if !defined(__HIPCC_RTC__)
 /// Numeric limits
 template <> struct numeric_limits<tv::tfloat32_t> {
   static bool const is_specialized = true;
