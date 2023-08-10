@@ -25,26 +25,156 @@
 #include "core.h"
 #include <tensorview/core/defs.h>
 
-#ifdef __CUDACC_RTC__
+#ifdef __HIPCC_RTC__
 
 namespace std {
 
-template <typename _Tp, _Tp __v> struct integral_constant {
-  static constexpr _Tp value = __v;
-  typedef _Tp value_type;
-  typedef integral_constant<_Tp, __v> type;
-  TV_HOST_DEVICE_INLINE constexpr operator value_type() const noexcept {
-    return value;
-  }
-  TV_HOST_DEVICE_INLINE constexpr value_type operator()() const noexcept {
-    return value;
-  }
+// ========== Initializer list ============
+template<class E> class initializer_list {
+  public:
+    using value_type      = E;
+    using reference       = const E&;
+    using const_reference = const E&;
+    using size_type       = size_t;
+ 
+    using iterator        = const E*;
+    using const_iterator  = const E*;
+ 
+    constexpr initializer_list() noexcept;
+ 
+    constexpr size_t size() const noexcept;     // number of elements
+    constexpr const E* begin() const noexcept;  // first element
+    constexpr const E* end() const noexcept;    // one past the last element
+  };
+ 
+  // initializer list range access
+  template<class E> constexpr const E* begin(initializer_list<E> il) noexcept;
+  template<class E> constexpr const E* end(initializer_list<E> il) noexcept;
+
+// =========== End Initializer list ========
+
+
+// ================== make_index_sequence ============
+//// START OF CODE FROM GOOGLE ABSEIL
+
+// integer_sequence
+//
+// Class template representing a compile-time integer sequence. An instantiation
+// of `integer_sequence<T, Ints...>` has a sequence of integers encoded in its
+// type through its template arguments (which is a common need when
+// working with C++11 variadic templates). `absl::integer_sequence` is designed
+// to be a drop-in replacement for C++14's `std::integer_sequence`.
+//
+// Example:
+//
+//   template< class T, T... Ints >
+//   void user_function(integer_sequence<T, Ints...>);
+//
+//   int main()
+//   {
+//     // user_function's `T` will be deduced to `int` and `Ints...`
+//     // will be deduced to `0, 1, 2, 3, 4`.
+//     user_function(make_integer_sequence<int, 5>());
+//   }
+template <typename T, T... Ints>
+struct integer_sequence
+{
+    using value_type = T;
+    static constexpr std::size_t size() noexcept
+    {
+        return sizeof...(Ints);
+    }
 };
+
+// index_sequence
+//
+// A helper template for an `integer_sequence` of `size_t`,
+// `absl::index_sequence` is designed to be a drop-in replacement for C++14's
+// `std::index_sequence`.
+template <size_t... Ints>
+using index_sequence = integer_sequence<size_t, Ints...>;
+
+namespace utility_internal
+{
+
+template <typename Seq, size_t SeqSize, size_t Rem>
+struct Extend;
+
+// Note that SeqSize == sizeof...(Ints). It's passed explicitly for efficiency.
+template <typename T, T... Ints, size_t SeqSize>
+struct Extend<integer_sequence<T, Ints...>, SeqSize, 0>
+{
+    using type = integer_sequence < T, Ints..., (Ints + SeqSize)... >;
+};
+
+template <typename T, T... Ints, size_t SeqSize>
+struct Extend<integer_sequence<T, Ints...>, SeqSize, 1>
+{
+    using type = integer_sequence < T, Ints..., (Ints + SeqSize)..., 2 * SeqSize >;
+};
+
+// Recursion helper for 'make_integer_sequence<T, N>'.
+// 'Gen<T, N>::type' is an alias for 'integer_sequence<T, 0, 1, ... N-1>'.
+template <typename T, size_t N>
+struct Gen
+{
+    using type =
+        typename Extend < typename Gen < T, N / 2 >::type, N / 2, N % 2 >::type;
+};
+
+template <typename T>
+struct Gen<T, 0>
+{
+    using type = integer_sequence<T>;
+};
+
+}  // namespace utility_internal
+
+// Compile-time sequences of integers
+
+// make_integer_sequence
+//
+// This template alias is equivalent to
+// `integer_sequence<int, 0, 1, ..., N-1>`, and is designed to be a drop-in
+// replacement for C++14's `std::make_integer_sequence`.
+template <typename T, T N>
+using make_integer_sequence = typename utility_internal::Gen<T, N>::type;
+
+// make_index_sequence
+//
+// This template alias is equivalent to `index_sequence<0, 1, ..., N-1>`,
+// and is designed to be a drop-in replacement for C++14's
+// `std::make_index_sequence`.
+template <size_t N>
+using make_index_sequence = make_integer_sequence<size_t, N>;
+
+// index_sequence_for
+//
+// Converts a typename pack into an index sequence of the same length, and
+// is designed to be a drop-in replacement for C++14's
+// `std::index_sequence_for()`
+template <typename... Ts>
+using index_sequence_for = make_index_sequence<sizeof...(Ts)>;
+
+//// END OF CODE FROM GOOGLE ABSEIL
+// ======= end make_index_sequence ==================
+
+// template <typename _Tp, _Tp __v> struct integral_constant {
+//   static constexpr _Tp value = __v;
+//   typedef _Tp value_type;
+//   typedef integral_constant<_Tp, __v> type;
+//   TV_HOST_DEVICE_INLINE constexpr operator value_type() const noexcept {
+//     return value;
+//   }
+//   TV_HOST_DEVICE_INLINE constexpr value_type operator()() const noexcept {
+//     return value;
+//   }
+// };
 /// The type used as a compile-time boolean with true value.
-typedef integral_constant<bool, true> true_type;
+// typedef integral_constant<bool, true> true_type;
 
 /// The type used as a compile-time boolean with false value.
-typedef integral_constant<bool, false> false_type;
+// typedef integral_constant<bool, false> false_type;
 
 template <bool _Cond, typename _Iftrue, typename _Iffalse> struct conditional {
   typedef _Iftrue type;
@@ -318,11 +448,11 @@ public:
 template <typename _Tp> using decay_t = typename decay<_Tp>::type;
 
 // nvrtc seems contain a built-in std::forward...
-// template <typename _Tp>
-// constexpr _Tp &&
-// forward(typename std::remove_reference<_Tp>::type &__t) noexcept {
-//   return static_cast<_Tp &&>(__t);
-// }
+template <typename _Tp>
+constexpr _Tp &&
+forward(typename std::remove_reference<_Tp>::type &__t) noexcept {
+  return static_cast<_Tp &&>(__t);
+}
 
 // /**
 //  *  @brief  Forward an rvalue.
@@ -339,16 +469,16 @@ template <typename _Tp> using decay_t = typename decay<_Tp>::type;
 //   return static_cast<_Tp &&>(__t);
 // }
 
-template <typename, typename> struct is_same : public false_type {};
+// template <typename, typename> struct is_same : public false_type {};
 
-template <typename _Tp> struct is_same<_Tp, _Tp> : public true_type {};
+// template <typename _Tp> struct is_same<_Tp, _Tp> : public true_type {};
 
 // Primary template.
 /// Define a member typedef @c type only if a boolean constant is true.
-template <bool, typename _Tp = void> struct enable_if {};
+// template <bool, typename _Tp = void> struct enable_if {};
 
 // Partial specialization for true.
-template <typename _Tp> struct enable_if<true, _Tp> { typedef _Tp type; };
+// template <typename _Tp> struct enable_if<true, _Tp> { typedef _Tp type; };
 
 template <typename... _Cond>
 using _Require = typename enable_if<__and_<_Cond...>::value>::type;
