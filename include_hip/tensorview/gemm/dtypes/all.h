@@ -21,6 +21,7 @@
 #include "tf32.h"
 #ifdef TV_CUDA
 #include "float8.h"
-#include "complex.h"
+// #include "complex.h"
+#warning "turning off complex.h import"
 #endif
 #include <tensorview/dtypes.h>
