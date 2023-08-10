@@ -76,6 +76,7 @@ def _get_cuda_arch_flags(is_gemm: bool = False) -> Tuple[List[str], List[Tuple[i
     See select_compute_arch.cmake for corresponding named and supported arches
     when building with CMake.
     '''
+    print("----[Warning] accessing _get_cuda_arch_flags!!")
     # from pytorch cpp_extension.py
     # Note: keep combined names ("arch1+arch2") above single names, otherwise
     # string replacement may not do the right thing
@@ -158,9 +159,11 @@ def _get_cuda_arch_flags(is_gemm: bool = False) -> Tuple[List[str], List[Tuple[i
         arch_list = []
         # the assumption is that the extension should run on any of the currently visible cards,
         # which could be of different types - therefore all archs for visible cards should be included
+        # gpu_names = subprocess.check_output(
+        #     ["nvidia-smi", "--query-gpu=name",
+        #      "--format=csv,noheader"]).decode("utf-8")
         gpu_names = subprocess.check_output(
-            ["nvidia-smi", "--query-gpu=name",
-             "--format=csv,noheader"]).decode("utf-8")
+            ["rocm-smi", "--showproductname", "--csv"]).decode("utf-8")
         gpu_names = gpu_names.strip()
         gpu_names = gpu_names.split("\n")
         arch_found = True
@@ -273,9 +276,10 @@ class GemmKernelFlags(pccm.Class):
         super().__init__()
         include, lib64 = _get_cuda_include_lib()
         self.build_meta.add_public_includes(include)
+        print("[Calling] GemmKernelFlags")
         if CUMM_ROCM_ENABLE:
             self.build_meta.add_public_cflags("hipcc")
-            # self.build_meta.add_public_cflags("hipcc", *gpu_arch_flags)
+            # self.build_meta.add_public_cflags("hipcc", "-Wno-deprecated-register")
             # self.build_meta.add_public_cflags("hipcc",
             #     "-Xcudafe \"--diag_suppress=implicit_return_from_non_void_function\"",
             # )

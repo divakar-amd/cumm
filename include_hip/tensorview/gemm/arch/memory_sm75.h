@@ -28,11 +28,11 @@
 
 #pragma once
 #include <hip/hip_runtime_api.h>
-#include <hip/hip_runtime.h>
 #include <tensorview/core/all.h>
 
-#if defined(__CUDACC_RTC__)
-#include <cuda/std/cassert>
+#if defined(__HIPCC_RTC__)
+// #include <cassert>
+#warning "skipping cassert"
 #else
 #include <assert.h>
 #endif

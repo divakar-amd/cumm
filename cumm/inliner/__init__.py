@@ -351,7 +351,7 @@ class NVRTCInlineBuilder(InlineBuilder):
               name: str,
               timeout: float,
               user_arg: Optional[_NVRTCInlineParams] = None):
-        verbose = False
+        verbose = True
         verbose_path = ""
         if user_arg is not None:
             verbose = user_arg.verbose
@@ -361,6 +361,7 @@ class NVRTCInlineBuilder(InlineBuilder):
             ctx = tv.measure_and_print(f"{name} nvrtc build time")
         # with tv.measure_and_print("INLINE"):
         params = create_nvrtc_code([pccm_cls])
+        print("[NVRTCInlineBuilder.buid] returned from create_nvrtc_code")
         is_cpu = False
         if user_arg is not None:
             is_cpu = user_arg.is_cpu
@@ -380,12 +381,14 @@ class NVRTCInlineBuilder(InlineBuilder):
                                          verbose_path=verbose_path)
                 else:
                     if verbose:
+                        print("here")
                         mod = CummNVRTCModule([pccm_cls],
                                               verbose=verbose,
                                               verbose_path=verbose_path)
                     else:
                         mod = CummNVRTCModuleBase.from_params(params)
 
+        print("-->returning mod ...\n")
         return mod
 
     def run_func(self,

@@ -27,8 +27,9 @@
  **************************************************************************************************/
 #pragma once
 
-#if defined(__CUDACC_RTC__)
-#include <cuda/std/cstdint>
+#if defined(__HIPCC_RTC__)
+// #include <cuda/std/cstdint>
+#include "hipify/stdint.h"
 #else
 #include <cstdint>
 #endif
@@ -40,7 +41,7 @@
 #include "half.h"
 #include "tf32.h"
 
-#if !defined(__CUDACC_RTC__)
+#if !defined(__HIPCC_RTC__)
 #include <iosfwd>
 #endif
 
@@ -70,11 +71,11 @@ enum class ComplexTransform { kNone, kConjugate };
 
 /// Returns the real part of the complex number
 TV_HOST_DEVICE_INLINE
-float const &real(cuFloatComplex const &z) { return z.x; }
+float const &real(hipFloatComplex const &z) { return z.x; }
 
 /// Returns the real part of the complex number
 TV_HOST_DEVICE_INLINE
-float &real(cuFloatComplex &z) { return z.x; }
+float &real(hipFloatComplex &z) { return z.x; }
 
 /// Returns the real part of the complex number
 TV_HOST_DEVICE_INLINE
@@ -86,11 +87,11 @@ double &real(rocblas_double_complex &z) { return z.x; }
 
 /// Returns the imaginary part of the complex number
 TV_HOST_DEVICE_INLINE
-float const &imag(cuFloatComplex const &z) { return z.y; }
+float const &imag(hipFloatComplex const &z) { return z.y; }
 
 /// Returns the imaginary part of the complex number
 TV_HOST_DEVICE_INLINE
-float &imag(cuFloatComplex &z) { return z.y; }
+float &imag(hipFloatComplex &z) { return z.y; }
 
 /// Returns the imaginary part of the complex number
 TV_HOST_DEVICE_INLINE
@@ -138,9 +139,9 @@ public:
   TV_HOST_DEVICE_INLINE complex(complex<A> const &z)
       : _real(static_cast<T>(z.real())), _imag(static_cast<T>(z.imag())) {}
 
-  /// Conversion from cuFloatComplex
+  /// Conversion from hipFloatComplex
   TV_HOST_DEVICE_INLINE
-  complex(cuFloatComplex const &z)
+  complex(hipFloatComplex const &z)
       : _real(static_cast<T>(cuCrealf(z))), _imag(static_cast<T>(cuCimagf(z))) {
   }
 
@@ -257,10 +258,10 @@ public:
   TV_HOST_DEVICE_INLINE
   T &imag() { return _imag; }
 
-  /// Converts to cuFloatComplex
+  /// Converts to hipFloatComplex
   TV_HOST_DEVICE_INLINE
-  explicit operator cuFloatComplex() const {
-    return make_cuFloatComplex(float(real()), float(imag()));
+  explicit operator hipFloatComplex() const {
+    return make_hipFloatComplex(float(real()), float(imag()));
   }
 
   /// Converts to rocblas_double_complex
@@ -300,7 +301,7 @@ template <typename T> TV_HOST_DEVICE_INLINE T &imag(complex<T> &z) {
 // Output operators
 //
 
-#if !defined(__CUDACC_RTC__)
+#if !defined(__HIPCC_RTC__)
 template <typename T>
 std::ostream &operator<<(std::ostream &out, complex<T> const &z) {
   T _r = real(z);

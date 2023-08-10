@@ -25,11 +25,11 @@
 #include "core.h"
 #include <tensorview/core/defs.h>
 
-#ifdef __CUDACC_RTC__
-#include <cuda/std/cfloat>
-#include <cuda/std/climits>
-#include <cuda/std/cstdint>
-#include <cuda/std/cassert>
+#ifdef __HIPCC_RTC__
+#include "hipify/float.h"
+#include "hipify/limits.h"
+#include "hipify/stdint.h"
+// #include <cuda/std/cassert>
 
 #define _GLIBCXX_USE_CONSTEXPR constexpr
 #define _GLIBCXX_CONSTEXPR TV_HOST_DEVICE_INLINE constexpr
@@ -686,7 +686,7 @@ template <> struct numeric_limits<int> {
   static _GLIBCXX_USE_CONSTEXPR bool is_specialized = true;
 
   static _GLIBCXX_CONSTEXPR int min() _GLIBCXX_USE_NOEXCEPT {
-    return -INT_MIN - 1;
+    return INT_MIN;
   }
 
   static _GLIBCXX_CONSTEXPR int max() _GLIBCXX_USE_NOEXCEPT { return INT_MAX; }

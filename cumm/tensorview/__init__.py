@@ -193,8 +193,17 @@ class NVRTCModule:
         if name_exprs is None:
             name_exprs = []
         if isinstance(code, str):
+            # print("[NVRTCModule] calling _NVRTCModule")
+            # print("cudavertpath in the _NVRTCModule call: ", cudadevrt_path)
+            # print("code:", code)
+            # print("headers: ", headers)
+            # print("opts: ", opts)
+            # print("program_name: ", program_name)
+            # print("name_exprs: ", name_exprs)
+            # print("cudadevrt_path: ", cudadevrt_path)
             self._mod = _NVRTCModule(code, headers, opts, program_name,
                                      name_exprs, cudadevrt_path)
+            print("[NVRTCModule] done calling _NVRTCModule!")
         else:
             self._mod = _NVRTCModule(code, cudadevrt_path)
         self._name_exprs = name_exprs

@@ -70,6 +70,7 @@ public:
       header_name_ptr = header_names.data();
     }
 #ifdef TV_CUDA
+    std::cout << "code_.c_str(): " << code_.c_str() << std::endl;
     TV_NVRTC_SAFE_CALL(hiprtcCreateProgram(&prog_,                // prog
                                           code_.c_str(),         // buffer
                                           program_name_.c_str(), // name
@@ -225,7 +226,12 @@ public:
     }
     size_t ptxSize;
     TV_NVRTC_SAFE_CALL(hiprtcGetCodeSize(prog_, &ptxSize));
-    std::string ptx(ptxSize, '0');
+    std::string ptx(42263, '0');
+    std::cout << "ptxSize: " << ptxSize << std::endl;
+    std::cout << "prog_: "   << prog_ << std::endl;
+    // std::cout << "ptx: "     << ptx << std::endl;
+    // std::cout << "ptx[0]: "  << ptx[0] << std::endl;
+    // std::cout << "&ptx[0]: " << &ptx[0] << std::endl;
     TV_NVRTC_SAFE_CALL(hiprtcGetCode(prog_, &ptx[0]));
 
     return ptx;

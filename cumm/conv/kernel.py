@@ -408,7 +408,7 @@ class ConvParams(pccm.ParameterizedClass):
                 # )
             else:
                 code.raw(f"""
-                #if !defined(__CUDACC_RTC__) && !defined(__NVCC__)
+                #if !defined(__CUDACC_RTC__) && !defined(__NVCC__) && !defined(__HIPCC_RTC__)
                 TV_ASSERT_INVALID_ARG(gemm_k_iterations % problem.kernel_volume == 0, \"error\");
                 #endif
                 """)

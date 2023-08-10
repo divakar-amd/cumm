@@ -53,6 +53,7 @@ def cufilt(name: str):
         # if fail, use cu++filt.
         # in windows, gcc-style demangle isn't available.
         # so we can only use subprocess before cuda 11.4.
+        print("[-->] Calling cufilt!!")
         res = subprocess.check_output(["cu++filt",
                                        name]).decode("utf-8").strip()
         return res
@@ -298,10 +299,16 @@ class CummNVRTCModuleBase(tv.NVRTCModule):
                          name_exprs=name_exprs,
                          name_to_meta=name_to_meta,
                          cudadevrt_path=cudadevrt_path)
+        
+        print("Done with tv.NVRTCModeul __init__")
         self.code = code
         # extract meta data from ptx
         self.kernel_metas = list(name_to_meta.values())
+        # print(code)
+        # print(self.program)
+        # breakpoint()
         ptx = self.program.ptx()
+
         const_values: Dict[str, int] = {}
         for line in ptx.split("\n"):
             line = line.strip()
@@ -387,6 +394,8 @@ class CummNVRTCModule(CummNVRTCModuleBase):
                  add_arch_flag: bool = True) -> None:
         mod_params = create_nvrtc_code(cus, namespace_root, cudadevrt_path,
                                        custom_names, std, add_arch_flag=add_arch_flag)
+        
+        print("cudavert path:", cudadevrt_path)
         if verbose:
             if verbose_path:
                 verbose_path_p = Path(verbose_path)
